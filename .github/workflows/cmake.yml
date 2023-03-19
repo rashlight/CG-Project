@@ -20,8 +20,24 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Install packages
-      run: sudo apt-get install cmake libglfw3 libglfw3-dev libglew-dev magnum
+    - name: Install apt packages
+      run: sudo apt-get install dpkg-dev debhelper cmake libglfw3 libglfw3-dev libglew-dev libopenal-dev libsdl2-dev
+      
+    - name: Install corrade
+      run: |
+          git clone https://github.com/mosra/corrade && cd corrade
+          ln -s package/debian .
+          dpkg-buildpackage --no-sign
+          sudo dpkg -i ../corrade*.deb
+          cd ..
+    
+    - name: Install magnum
+      run: |
+          git clone https://github.com/mosra/magnum && cd magnum
+          ln -s package/debian .
+          dpkg-buildpackage --no-sign
+          sudo dpkg -i ../magnum*.deb
+          cd ..
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
