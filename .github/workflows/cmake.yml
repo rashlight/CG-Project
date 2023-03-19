@@ -22,7 +22,7 @@ jobs:
     
     - name: Install packages
       run: |
-          sudo apt-get install libglfw3 libglfw3-dev libglew-dev
+          sudo apt-get install debhelper libglfw3 libglfw3-dev libglew-dev
           
           git clone https://github.com/mosra/corrade && cd corrade
           ln -s package/debian .
