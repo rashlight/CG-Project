@@ -1,143 +1,99 @@
-#include <iostream>
+#include <Magnum/GL/Buffer.h>
+#include <Magnum/GL/DefaultFramebuffer.h>
+#include <Magnum/GL/Mesh.h>
+#include <Magnum/GL/Renderer.h>
+#include <Magnum/Math/Color.h>
+#include <Magnum/Math/Matrix4.h>
+#include <Magnum/MeshTools/Compile.h>
+#include <Magnum/Platform/GLContext.h>
+#include <Magnum/Platform/Sdl2Application.h>
+#include <Magnum/Shaders/VertexColor.h>
+#include <Magnum/Primitives/Cube.h>
+#include <Magnum/Shaders/Phong.h>
+#include <Magnum/Trade/MeshData.h>
+#include <GLFW/glfw3.h>
 
-#include <SFML/Window.hpp>
-#include <SFML/OpenGL.hpp>
+namespace Magnum { namespace Examples {
 
-int main()
+using namespace Magnum::Math::Literals;
+
+class PrimitivesExample: public Platform::Application {
+    public:
+        explicit PrimitivesExample(const Arguments& arguments);
+
+    private:
+        void drawEvent() override;
+        void mousePressEvent(MouseEvent& event) override;
+        void mouseReleaseEvent(MouseEvent& event) override;
+        void mouseMoveEvent(MouseMoveEvent& event) override;
+
+        GL::Mesh _mesh;
+        Shaders::Phong _shader;
+
+        Matrix4 _transformation, _projection;
+        Color3 _color;
+};
+
+PrimitivesExample::PrimitivesExample(const Arguments& arguments):
+    Platform::Application{arguments, Configuration{}
+        .setTitle("Magnum Primitives Example")}
 {
-    // Request a 24-bits depth buffer when creating the window
-    sf::ContextSettings contextSettings;
-    contextSettings.depthBits = 24;
+    GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
+    GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
 
-    // Create the main window
-    sf::VideoMode mode(800u, 600u);
-    sf::Window window(mode, "SFML window with OpenGL", sf::Style::Default, contextSettings);
+    _mesh = MeshTools::compile(Primitives::cubeSolid());
 
-    // Make it the active window for OpenGL calls
-    bool active = window.setActive();
-    if (!active) {
-      std::cout << "Cannot activate SFML window!";
-      return 1;
-    }
-
-    // Set the color and depth clear values
-    glClearDepth(1.f);
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-
-    // Enable Z-buffer read and write
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-
-    // Disable lighting and texturing
-    glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
-
-    // Configure the viewport (the same size as the window)
-    glViewport(0, 0, window.getSize().x, window.getSize().y);
-
-    // Setup a perspective projection
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    GLfloat ratio = static_cast<float>(window.getSize().x) / window.getSize().y;
-    glFrustum(-ratio, ratio, -1.f, 1.f, 1.f, 500.f);
-
-    // Define a 3D cube (6 faces made of 2 triangles composed by 3 vertices)
-    GLfloat cube[] =
-    {
-        // positions    // colors (r, g, b, a)
-        -50, -50, -50,  0, 0, 1, 1,
-        -50,  50, -50,  0, 0, 1, 1,
-        -50, -50,  50,  0, 0, 1, 1,
-        -50, -50,  50,  0, 0, 1, 1,
-        -50,  50, -50,  0, 0, 1, 1,
-        -50,  50,  50,  0, 0, 1, 1,
-
-         50, -50, -50,  0, 1, 0, 1,
-         50,  50, -50,  0, 1, 0, 1,
-         50, -50,  50,  0, 1, 0, 1,
-         50, -50,  50,  0, 1, 0, 1,
-         50,  50, -50,  0, 1, 0, 1,
-         50,  50,  50,  0, 1, 0, 1,
-
-        -50, -50, -50,  1, 0, 0, 1,
-         50, -50, -50,  1, 0, 0, 1,
-        -50, -50,  50,  1, 0, 0, 1,
-        -50, -50,  50,  1, 0, 0, 1,
-         50, -50, -50,  1, 0, 0, 1,
-         50, -50,  50,  1, 0, 0, 1,
-
-        -50,  50, -50,  0, 1, 1, 1,
-         50,  50, -50,  0, 1, 1, 1,
-        -50,  50,  50,  0, 1, 1, 1,
-        -50,  50,  50,  0, 1, 1, 1,
-         50,  50, -50,  0, 1, 1, 1,
-         50,  50,  50,  0, 1, 1, 1,
-
-        -50, -50, -50,  1, 0, 1, 1,
-         50, -50, -50,  1, 0, 1, 1,
-        -50,  50, -50,  1, 0, 1, 1,
-        -50,  50, -50,  1, 0, 1, 1,
-         50, -50, -50,  1, 0, 1, 1,
-         50,  50, -50,  1, 0, 1, 1,
-
-        -50, -50,  50,  1, 1, 0, 1,
-         50, -50,  50,  1, 1, 0, 1,
-        -50,  50,  50,  1, 1, 0, 1,
-        -50,  50,  50,  1, 1, 0, 1,
-         50, -50,  50,  1, 1, 0, 1,
-         50,  50,  50,  1, 1, 0, 1,
-    };
-
-    // Enable position and color vertex components
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 7 * sizeof(GLfloat), cube);
-    glColorPointer(4, GL_FLOAT, 7 * sizeof(GLfloat), cube + 3);
-
-    // Disable normal and texture coordinates vertex components
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    // Create a clock for measuring the time elapsed
-    sf::Clock clock;
-
-    // Start the game loop
-    while (window.isOpen())
-    {
-        // Process events
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            // Close window: exit
-            if (event.type == sf::Event::Closed)
-                window.close();
-
-            // Escape key: exit
-            if ((event.type == sf::Event::KeyPressed) && (event.key.code == sf::Keyboard::Escape))
-                window.close();
-
-            // Resize event: adjust the viewport
-            if (event.type == sf::Event::Resized)
-                glViewport(0, 0, event.size.width, event.size.height);
-        }
-
-        // Clear the color and depth buffers
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Apply some transformations to rotate the cube
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glTranslatef(0.f, 0.f, -200.f);
-        glRotatef(clock.getElapsedTime().asSeconds() * 50, 1.f, 0.f, 0.f);
-        glRotatef(clock.getElapsedTime().asSeconds() * 30, 0.f, 1.f, 0.f);
-        glRotatef(clock.getElapsedTime().asSeconds() * 90, 0.f, 0.f, 1.f);
-
-        // Draw the cube
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        // Finally, display the rendered frame on screen
-        window.display();
-    }
-
-    return EXIT_SUCCESS;
+    _transformation =
+        Matrix4::rotationX(30.0_degf)*Matrix4::rotationY(40.0_degf);
+    _projection =
+        Matrix4::perspectiveProjection(
+            35.0_degf, Vector2{windowSize()}.aspectRatio(), 0.01f, 100.0f)*
+        Matrix4::translation(Vector3::zAxis(-10.0f));
+    _color = Color3::fromHsv({35.0_degf, 1.0f, 1.0f});
 }
+
+void PrimitivesExample::drawEvent() {
+    GL::defaultFramebuffer.clear(
+        GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
+
+    _shader.setLightPositions(std::initializer_list<Magnum::Math::Vector3<float>> {{ 1.4f, 1.0f, 0.75f }} )
+        .setDiffuseColor(_color)
+        .setAmbientColor(Color3::fromHsv({_color.hue(), 1.0f, 0.3f}))
+        .setTransformationMatrix(_transformation)
+        .setNormalMatrix(_transformation.normalMatrix())
+        .setProjectionMatrix(_projection)
+        .draw(_mesh);
+
+    swapBuffers();
+}
+
+void PrimitivesExample::mousePressEvent(MouseEvent& event) {
+    if(event.button() != MouseEvent::Button::Left) return;
+
+    event.setAccepted();
+}
+
+void PrimitivesExample::mouseReleaseEvent(MouseEvent& event) {
+    _color = Color3::fromHsv({_color.hue() + 50.0_degf, 1.0f, 1.0f});
+
+    event.setAccepted();
+    redraw();
+}
+
+void PrimitivesExample::mouseMoveEvent(MouseMoveEvent& event) {
+    if(!(event.buttons() & MouseMoveEvent::Button::Left)) return;
+
+    Vector2 delta = 3.0f*Vector2{event.relativePosition()}/Vector2{windowSize()};
+
+    _transformation =
+        Matrix4::rotationX(Rad{delta.y()})*
+        _transformation*
+        Matrix4::rotationY(Rad{delta.x()});
+
+    event.setAccepted();
+    redraw();
+}
+
+}}
+
+MAGNUM_APPLICATION_MAIN(Magnum::Examples::PrimitivesExample)
