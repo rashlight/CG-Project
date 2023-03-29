@@ -7,7 +7,8 @@
 
 # Build and run
 ```zsh
-python src/main.py
+cd src/
+python main.py
 ```
 
 # Credits
