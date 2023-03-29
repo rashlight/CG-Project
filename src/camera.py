@@ -23,8 +23,7 @@ class Camera:
 		self.position = [0, 0, 0]
 		self.rotation = [-math.tau / 4, 0]
 	
-	def update_camera(self, delta_time):
-		speed = 7
+	def update_camera(self, speed, delta_time):
 		multiplier = speed * delta_time
 
 		self.position[1] += self.input[1] * multiplier
