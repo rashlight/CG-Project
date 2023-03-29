@@ -45,9 +45,11 @@ class World:
         voxels = gen(chunk.CHUNK_WIDTH, chunk.CHUNK_LENGTH, chunk.CHUNK_HEIGHT, chunk_count)
         counter = 0
 
-        print("creating world, this may take a while...")
+        print(f"world size {chunk.CHUNK_WIDTH}x{chunk.CHUNK_LENGTH}x{chunk.CHUNK_HEIGHT}x{chunk_count}")
+        print(f"creating voxels, this may take a while...")
         for x in range(3):
             for z in range(3):
+                print(f"load chunk {x},{z}")
                 chunk_position = (x - 4, -1, z - 4)
                 current_chunk = chunk.Chunk(self, chunk_position)
                 

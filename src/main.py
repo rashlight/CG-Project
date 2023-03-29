@@ -25,6 +25,7 @@ class Window(pyglet.window.Window):
 
         self.speed = 20
         self.sensitivity = 0.004
+        self.delta_counter = 0
 
         # create world
 
@@ -50,7 +51,10 @@ class Window(pyglet.window.Window):
         self.holding = 8
     
     def update(self, delta_time):
-        # print(f"FPS: {1.0 / delta_time}")
+        self.delta_counter += delta_time
+        if (self.delta_counter > 0.1):
+            self.set_caption(f"CG Project - Group 16 (FPS: {1.0 / delta_time})")
+            self.delta_counter = 0
 
         if not self.mouse_captured:
             self.camera.input = [0, 0, 0]
@@ -80,7 +84,7 @@ class Window(pyglet.window.Window):
     # input functions
 
     def on_resize(self, width, height):
-        print(f"Resize {width} * {height}")
+        print(f"resize {width} * {height}")
         gl.glViewport(0, 0, width, height)
 
         self.camera.width = width
@@ -155,7 +159,7 @@ class Window(pyglet.window.Window):
 class Game:
     def __init__(self):
         self.config = gl.Config(double_buffer = True, major_version = 3, minor_version = 3, depth_size = 16)
-        self.window = Window(config = self.config, width = 800, height = 600, caption = "CG Project - Group ", resizable = True, vsync = False)
+        self.window = Window(config = self.config, width = 800, height = 600, caption = "CG Project - Group 16 is LOADING...", resizable = True, vsync = False)
     
     def run(self):
         pyglet.app.run()
